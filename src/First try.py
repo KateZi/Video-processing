@@ -18,14 +18,14 @@ def crop_frame(windowname, frame, box=None):
     return _frame, box
 
 
-path = "../data/"
+path = "/Users/glebzinkovskiy/Documents/Orel_experiments/Original/Down/"
 video_name = "GX050012.mp4"
 name_tail = "_undistorted.mp4"
 
-if not os.path.exists(path+video_name[:-4]+name_tail):
-    undistort(path+video_name)
+# if not os.path.exists(path+video_name[:-4]+name_tail):
+#     undistort(path+video_name)
 
-video = cv2.VideoCapture(path + video_name[:-4] + name_tail)
+video = cv2.VideoCapture(path + video_name) # + name_tail)
 
 frame_count = 0
 box = None
@@ -33,34 +33,42 @@ box = None
 screen_res = 1440, 900
 
 
-if video.isOpened()==True:
+if video.isOpened():
+    cv2.namedWindow("Frame", cv2.WINDOW_NORMAL)
+    total_count = video.get(cv2.CAP_PROP_FRAME_COUNT)
+
     codec = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
+    # codec = cv2.VideoWriter_fourcc(*'XVID')
     FPS = video.get(cv2.CAP_PROP_FPS)
     _, frame = video.read()
     rescaled_frame = rescale_frame(frame)
-    first_frame, box = crop_frame(rescaled_frame)
-    width = box[3]
-    height = box[2]
-    out_video = cv2.VideoWriter(str(video_name[:-4]) + '_cropped.mp4', codec, FPS, (width, height), 1)
+    first_frame, box = crop_frame("Frame", rescaled_frame)
+    width = box[2]
+    height = box[3]
+    size = (width, height)
+    out_video = cv2.VideoWriter(str(video_name[:-4]) + '_cropped.mp4', codec, FPS, size, 1)
 
+    out_video.write(first_frame)
 
+    while frame_count < 237:
+        ret, frame = video.read()
 
-    ret, frame = video.read()
+        if ret:
+            frame_count = video.get(cv2.CAP_PROP_POS_FRAMES)
 
-    cv2.namedWindow("Frame", cv2.WINDOW_NORMAL)
+            rescaled_frame = rescale_frame(frame)
+            cropped_frame, _ = crop_frame("Frame", rescaled_frame, box)
+            # cv2.resizeWindow("Frame", cropped_frame.shape[1], cropped_frame.shape[0])
+            # cv2.imshow("Frame", cropped_frame)
+            out_video.write(cropped_frame)
+        else:
+            print("Something's wrong: " + str(frame_count))
 
-    if ret:
-        rescaled_frame = rescale_frame(frame)
-        cropped_frame, box = crop_frame("Frame", rescaled_frame, box)
-        # cv2.resizeWindow("Frame", cropped_frame.shape[1], cropped_frame.shape[0])
-        cv2.imshow("Frame", cropped_frame)
-    else:
-        print("Something's wrong: " + str(frame_count))
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
 
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
+        # frame_count += 1
 
-    frame_count += 1
-
-video.release()
-cv2.destroyAllWindows()
+    video.release()
+    out_video.release()
+    cv2.destroyAllWindows()
