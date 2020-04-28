@@ -135,7 +135,7 @@ if __name__=='__main__':
     elif sys.argv[1] == "crop":
         path = input("Insert the directory to work in\n")
         process_videos(path)
-    elif sys.argv[1] == "sequence":
+    elif sys.argv[1] == "concatenate":
         path = input("Insert the directory to work in\n")
         concatenate_videos(path)
     elif sys.argv[1] == "undistort":
