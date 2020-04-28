@@ -129,6 +129,9 @@ def concatenate_videos(dir):
 
 
 if __name__=='__main__':
+    if len(sys.argv) == 1:
+        print("Call the script with arg \"undistort\" to undistort videos, \"crop\" to crop videos, "
+              "\"sequence\" for creating a single video from multiple")
     if sys.argv[1] == "crop":
         path = input("Insert the directory to work in\n")
         process_videos(path)
@@ -138,6 +141,3 @@ if __name__=='__main__':
     elif sys.argv[1] == "undistort":
         path = input("Insert the directory to work in\n")
         undistort_all(path)
-    else:
-        print("Call the script with arg \"undistort\" to undistort videos, \"crop\" to crop videos, "
-              "\"sequence\" for creating a single video from multiple")
