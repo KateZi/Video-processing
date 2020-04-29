@@ -9,8 +9,8 @@ cd Video-processing
 I suggest using [Anaconda](https://www.anaconda.com) to create an environemnt for running the script.
 Once Anaconda is installed:
 ```bash
-conda create --name <env_name> --file requirements.txt
-conda activate <env_name>
+conda env create -f environment.yml
+conda activate myenv
 ```
 
 ## Usage
