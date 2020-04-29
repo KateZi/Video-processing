@@ -19,3 +19,9 @@ To run the script for:
 1. Undistorting provide an argument "undistort"
 2. Crop - "crop"
 3. Concatenate - "concatenate"
+
+## Usage Example
+```bash
+python Video_processing crop # "Insert the directory to work in"
+<directory with videos>
+```
