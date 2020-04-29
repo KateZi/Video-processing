@@ -6,6 +6,13 @@ from Undistort_func import undistort
 
 
 def choose_box(windowname, frame):
+    """
+    Is called once for choosing the are of the crop
+    Prompts the user with a smaller frame for resolution purposes
+    :param windowname: name of the cv2 window in use
+    :param frame:
+    :return: area of the crop
+    """
     height, width = frame.shape[:2]
     _width = int(width/3)
     _height = int(height/4)
@@ -23,6 +30,12 @@ def crop_frame(frame, box):
 
 
 def undistort_all(dir):
+    """
+    Traverses through the given directory
+    Undistorts every video
+    Moves every created video into a directory "undistorted"
+    :param dir:
+    """
     tail = "undistorted"
     videofiles = [n for n in os.listdir(dir) if n[-4:] == '.mp4' or n[-4:] == '.MP4']
 
@@ -40,8 +53,9 @@ def undistort_all(dir):
 
 def process_videos(dir):
     """
-    saves videos in the given directory
-    with "_cropped" tail
+    Traverses through the given directory
+    Crops the videos according to one-time pick of the user
+    Saves videos with "_cropped" tail
     """
     box = None
     videofiles = [n for n in os.listdir(dir) if n[-4:] == '.mp4' or n[-4:] == '.MP4']
@@ -90,9 +104,16 @@ def process_videos(dir):
 
 
 def concatenate_videos(dir):
+    """
+    Traverses through the given directory
+    Concatenates videos into one starting from the first video
+    Assumes the following naming format
+    "GX010012.MP4" where "01" would be the key for sorting
+    :param dir:
+    """
     # these two lines are for loading the videos.
     videofiles = [n for n in os.listdir(dir) if n[-4:] == '.mp4' or n[-4:] == '.MP4']
-    videofiles = sorted(videofiles, key=lambda item: int( item.partition('X0')[1][:-4]))
+    videofiles = sorted(videofiles, key=lambda item: int( item.partition('X')[2][:-8]))
 
     video_index = 0
     video_name = videofiles[0]
@@ -131,7 +152,7 @@ def concatenate_videos(dir):
 if __name__=='__main__':
     if len(sys.argv) == 1:
         print("Call the script with arg \"undistort\" to undistort videos, \"crop\" to crop videos, "
-              "\"sequence\" for creating a single video from multiple")
+              "\"concatenate\" for creating a single video from multiple")
     elif sys.argv[1] == "crop":
         path = input("Insert the directory to work in\n")
         process_videos(path)
