@@ -57,7 +57,6 @@ def process_videos(dir):
     Crops the videos according to one-time pick of the user
     Saves videos with "_cropped" tail
     """
-    offset = 0
     cropped_frame = None
     frame_count = 0
 
@@ -65,6 +64,8 @@ def process_videos(dir):
     videofiles = [n for n in os.listdir(dir) if n[-4:] == '.mp4' or n[-4:] == '.MP4']
 
     for videofile in videofiles:
+        offset = 0
+
         cv2.namedWindow("Frame", cv2.WINDOW_NORMAL)
 
         filename = os.path.join(dir, videofile)

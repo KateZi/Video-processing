@@ -22,7 +22,7 @@ def undistort(filename):
 
     print('Loading data files')
 
-    npz_calib_file = np.load('../data/calibration_data.npz')
+    npz_calib_file = np.load('/Users/glebzinkovskiy/Video-processing/data/calibration_data.npz')
 
     distCoeff = npz_calib_file['distCoeff']
     intrinsic_matrix = npz_calib_file['intrinsic_matrix']
@@ -84,3 +84,12 @@ def undistort(filename):
         sys.exit()
 
 
+def undistort_frame(frame):
+    npz_calib_file = np.load('/Users/glebzinkovskiy/Video-processing/data/calibration_data.npz')
+
+    distCoeff = npz_calib_file['distCoeff']
+    intrinsic_matrix = npz_calib_file['intrinsic_matrix']
+
+    npz_calib_file.close()
+
+    return cv2.undistort(frame, intrinsic_matrix, distCoeff, None)
