@@ -57,6 +57,10 @@ def process_videos(dir):
     Crops the videos according to one-time pick of the user
     Saves videos with "_cropped" tail
     """
+    offset = 0
+    cropped_frame = None
+    frame_count = 0
+
     box = None
     videofiles = [n for n in os.listdir(dir) if n[-4:] == '.mp4' or n[-4:] == '.MP4']
 
@@ -66,12 +70,16 @@ def process_videos(dir):
         filename = os.path.join(dir, videofile)
 
         video = cv2.VideoCapture(filename)
-        frame_count = video.get(cv2.CAP_PROP_POS_FRAMES)
 
         if video.isOpened():
             ret, frame = video.read()
-            if ret and box is None:
-                box = choose_box("Frame", frame)
+            if ret:
+                frame_count = video.get(cv2.CAP_PROP_POS_FRAMES)
+                if box is None:
+                    box = choose_box("Frame", frame)
+            else:
+                print("Non-readable frame: " + str(frame_count + offset))
+                offset += 1
             total_count = video.get(cv2.CAP_PROP_FRAME_COUNT)
 
             codec = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
@@ -88,12 +96,16 @@ def process_videos(dir):
 
                 if ret:
                     frame_count = video.get(cv2.CAP_PROP_POS_FRAMES)
+
                     cropped_frame = crop_frame(frame, box)
                     cv2.resizeWindow("Frame", box[2], box[3])
                     cv2.imshow("Frame", cropped_frame)
                     out_video.write(cropped_frame)
                 else:
-                    print("Something's wrong: " + str(frame_count))
+                    print("Non-readable frame: " + str(frame_count + offset))
+                    print("Replacing with the previous frame")
+                    out_video.write(cropped_frame)
+                    offset += 1
 
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
@@ -128,7 +140,7 @@ def concatenate_videos(dir):
     size = (int(width), int(height))
     out = cv2.VideoWriter(name, codec, FPS, size, 1)
 
-    while (cap.isOpened()):
+    while cap.isOpened():
         ret, frame = cap.read()
         if frame is None:
             print ("end of video " + str(video_index) + " .. next one now")

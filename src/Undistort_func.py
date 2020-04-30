@@ -55,6 +55,7 @@ def undistort(filename):
 
         #Initializes the frame counter
         current_frame = 0
+        offset = 0
         start = time.clock()
 
         while current_frame < total_frames:
@@ -65,6 +66,11 @@ def undistort(filename):
                 dst = cv2.undistort(image, intrinsic_matrix, distCoeff, None)
 
                 video_out.write(dst)
+            else:
+                print("Non-readable frame: " + str(current_frame + offset))
+                print("Replacing with the previous frame")
+                video.write(current_frame)
+                offset += 1
 
         video.release()
         video_out.release()
