@@ -68,14 +68,13 @@ def main():
 
     folders = [f.name for f in os.scandir('.') if f.is_dir()]
 
-    cv2.namedWindow("Frame", cv2.WINDOW_NORMAL)
-
     for f in folders:
         box = None
         out_video = None
         prev = None
 
         videofiles = [vf for vf in os.listdir(f) if vf[-4:]=='.mp4' or vf[-4:]=='.MP4']
+        # TODO: FIX
         videofiles = sorted(videofiles, key=lambda item: int(item.partition('X')[2][:-8]))
 
         out_filename = re.split("X0[0-9]", videofiles[0])[1]
@@ -122,8 +121,8 @@ def main():
 
 
             video.release()
-            out_video.release()
             cv2.destroyAllWindows()
+        out_video.release()
 
 
 if __name__=='__main__':
