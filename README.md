@@ -14,13 +14,18 @@ conda activate myenv
 ```
 
 ## Usage
-The main script is "Video_processing"
+The main script is "undistort-crop-concat"
+```bash
+python src/undistort-crop-concat # "Please choose the directory with videos"
+```
+
+For separate functionality use "Video_processing"
 To run the script for:
 1. Undistorting provide an argument "undistort"
 2. Crop - "crop"
 3. Concatenate - "concatenate"
 
-## Usage Example
+## Example
 ```bash
 python Video_processing crop # "Insert the directory to work in"
 <directory with videos>

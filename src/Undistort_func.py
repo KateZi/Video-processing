@@ -16,7 +16,7 @@
 #output file.
 
 import numpy as np
-import cv2, time, sys
+import cv2, time, sys, os
 
 def undistort(filename):
 
@@ -85,7 +85,8 @@ def undistort(filename):
 
 
 def undistort_frame(frame):
-    npz_calib_file = np.load('/Users/glebzinkovskiy/Video-processing/data/calibration_data.npz')
+    dir_path = os.path.dirname(os.path.realpath(__file__))[:-3]
+    npz_calib_file = np.load(os.path.join(dir_path, '/data/calibration_data.npz'))
 
     distCoeff = npz_calib_file['distCoeff']
     intrinsic_matrix = npz_calib_file['intrinsic_matrix']

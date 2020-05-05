@@ -66,7 +66,7 @@ def main():
 
     cv2.namedWindow("Frame", cv2.WINDOW_NORMAL)
 
-    folders = [f.name for f in os.scandir('.') if f.is_dir()]
+    folders = ['Up', 'Down']
 
     for f in folders:
         box = None
