@@ -72,7 +72,12 @@ def main():
     path = "/Users/glebzinkovskiy/Documents/Orel_experiments/Original/Down/"
     video_name = "GX050012.mp4"
 
-    process_video(os.path.join(path, video_name))
+    # process_video(os.path.join(path, video_name))
+
+    processed_path = path.split('/')[:-3]
+    print()
+
+    # sequence_videos()
 
 
 if __name__=='__main__':

@@ -39,7 +39,6 @@ def undistort(filename):
     status = video.isOpened()
 
     if status == True:
-        FPS = video.get(cv2.CAP_PROP_FPS)
         width = video.get(cv2.CAP_PROP_FRAME_WIDTH)
         height = video.get(cv2.CAP_PROP_FRAME_HEIGHT)
         size = (int(width), int(height))
