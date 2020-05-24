@@ -61,68 +61,61 @@ def main():
     path = input("Please choose the directory with videos\n")
     print("Press space to pause and p to pick the first frame. Press q to quit.")
 
-    # please notice, that the working directory is changed per date
-    os.chdir(path)
-
     cv2.namedWindow("Frame", cv2.WINDOW_NORMAL)
 
-    folders = ['Up', 'Down']
+    box = None
+    out_video = None
+    # prev = None
 
-    for f in folders:
-        box = None
-        out_video = None
-        prev = None
+    videofiles = [vf for vf in os.listdir(path) if vf[-4:] == '.mp4' or vf[-4:] == '.MP4']
+    # TODO: FIX
+    videofiles = sorted(videofiles, key=lambda item: int(item.partition('X')[2][:-8]))
 
-        videofiles = [vf for vf in os.listdir(f) if vf[-4:]=='.mp4' or vf[-4:]=='.MP4']
-        # TODO: FIX
-        videofiles = sorted(videofiles, key=lambda item: int(item.partition('X')[2][:-8]))
+    out_filename = re.split("X0[0-9]", videofiles[0])[1]
 
-        out_filename = re.split("X0[0-9]", videofiles[0])[1]
+    for vf in videofiles:
+        current_frame = 0
+        offset = 0
 
-        for vf in videofiles:
-            current_frame = 0
-            offset = 0
+        video = cv2.VideoCapture(os.path.join(path, vf))
+        total_frames = video.get(cv2.CAP_PROP_FRAME_COUNT)
 
-            video = cv2.VideoCapture(os.path.join(f, vf))
-            total_frames = video.get(cv2.CAP_PROP_FRAME_COUNT)
+        while current_frame < total_frames:
+            success, frame = video.read()
+            current_frame = video.get(cv2.CAP_PROP_POS_FRAMES)
+            if success:
+                if box is not None:
+                    frame = process_frame(frame, box)
+                    out_video.write(frame)
+                cv2.imshow("Frame", frame)
+                # prev = frame
+            else:
+                print("Non-readable frame: " + str(current_frame + offset))
+                # if box is not None:
+                    # print("Replacing with the previous frame")
+                    # out_video.write(prev)
+                offset += 1
 
-            while current_frame < total_frames:
-                success, frame = video.read()
-                current_frame = video.get(cv2.CAP_PROP_POS_FRAMES)
-                if success:
-                    if box is not None:
-                        frame = process_frame(frame, box)
-                        out_video.write(frame)
-                    cv2.imshow("Frame", frame)
-                    prev = frame
-                else:
-                    print("Non-readable frame: " + str(current_frame + offset))
-                    if box is not None:
-                        print("Replacing with the previous frame")
-                        out_video.write(prev)
-                    offset += 1
+            key = cv2.waitKey(1) & 0xFF
+            if key == ord('q'):
+                break
+            elif key == ord(' '):
+                cv2.waitKey(-1)
 
-                key = cv2.waitKey(1) & 0xFF
-                if key == ord('q'):
-                    break
+            # if the area hasn't been chosen yet
+            # awaits for the the frame for the pick
+            if box is None:
+                if key == ord('p'):
+                    box = choose_box(frame)
+                    out_video = set_writer(video, box, os.path.join(path, out_filename))
                 elif key == ord(' '):
-                    cv2.waitKey(-1)
-
-                # if the area hasn't been chosen yet
-                # awaits for the the frame for the pick
-                if box is None:
-                    if key == ord('p'):
+                    if cv2.waitKey(-1) & 0xFF == ord('p'):
                         box = choose_box(frame)
-                        out_video = set_writer(video, box, os.path.join(f, out_filename))
-                    elif key == ord(' '):
-                        if cv2.waitKey(-1) & 0xFF == ord('p'):
-                            box = choose_box(frame)
-                            out_video = set_writer(video, box, os.path.join(f, out_filename))
+                        out_video = set_writer(video, box, os.path.join(path, out_filename))
 
-
-            video.release()
-            cv2.destroyAllWindows()
+        video.release()
         out_video.release()
+        cv2.destroyAllWindows()
 
 
 if __name__=='__main__':
