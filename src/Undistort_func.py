@@ -16,13 +16,13 @@
 #output file.
 
 import numpy as np
-import cv2, time, sys
+import cv2, time, sys, os
 
 def undistort(filename):
 
     print('Loading data files')
 
-    npz_calib_file = np.load('../data/calibration_data.npz')
+    npz_calib_file = np.load('/Users/glebzinkovskiy/Video-processing/data/calibration_data.npz')
 
     distCoeff = npz_calib_file['distCoeff']
     intrinsic_matrix = npz_calib_file['intrinsic_matrix']
@@ -54,6 +54,7 @@ def undistort(filename):
 
         #Initializes the frame counter
         current_frame = 0
+        offset = 0
         start = time.clock()
 
         while current_frame < total_frames:
@@ -64,6 +65,11 @@ def undistort(filename):
                 dst = cv2.undistort(image, intrinsic_matrix, distCoeff, None)
 
                 video_out.write(dst)
+            else:
+                print("Non-readable frame: " + str(current_frame + offset))
+                print("Replacing with the previous frame")
+                video.write(current_frame)
+                offset += 1
 
         video.release()
         video_out.release()
@@ -77,3 +83,13 @@ def undistort(filename):
         sys.exit()
 
 
+def undistort_frame(frame):
+    dir_path = os.path.dirname(os.path.realpath(__file__))[:-3]
+    npz_calib_file = np.load(os.path.join(dir_path, '/data/calibration_data.npz'))
+
+    distCoeff = npz_calib_file['distCoeff']
+    intrinsic_matrix = npz_calib_file['intrinsic_matrix']
+
+    npz_calib_file.close()
+
+    return cv2.undistort(frame, intrinsic_matrix, distCoeff, None)

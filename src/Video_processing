@@ -1,0 +1,177 @@
+import cv2
+import os
+import re
+import sys
+from Undistort_func import undistort
+
+
+def choose_box(windowname, frame):
+    """
+    Is called once for choosing the are of the crop
+    Prompts the user with a smaller frame for resolution purposes
+    :param windowname: name of the cv2 window in use
+    :param frame:
+    :return: area of the crop
+    """
+    height, width = frame.shape[:2]
+    _width = int(width/3)
+    _height = int(height/4)
+
+    _frame = cv2.resize(frame, (_width, _height), interpolation=cv2.INTER_AREA)
+
+    box = cv2.selectROI(windowName=windowname, img=_frame, showCrosshair=False)
+    box = [box[0]*3, box[1]*4, box[2]*3, box[3]*4]
+    return box
+
+
+def crop_frame(frame, box):
+    _frame = frame[int(box[1]):int(box[1] + box[3]), int(box[0]):int(box[0] + box[2])]
+    return _frame
+
+
+def undistort_all(dir):
+    """
+    Traverses through the given directory
+    Undistorts every video
+    Moves every created video into a directory "undistorted"
+    :param dir:
+    """
+    tail = "undistorted"
+    videofiles = [n for n in os.listdir(dir) if n[-4:] == '.mp4' or n[-4:] == '.MP4']
+
+    for videofile in videofiles:
+        filename = os.path.join(dir, videofile)
+        undistort(filename)
+
+    undistorted = [n for n in videofiles if tail in n]
+    if not os.path.exists(os.path.join(dir, tail)):
+        os.mkdir(os.path.join(dir, tail))
+    for videofile in undistorted:
+        os.rename(os.path.join(dir, videofile), os.path.join(dir, tail, videofile))
+    print()
+
+
+def process_videos(dir):
+    """
+    Traverses through the given directory
+    Crops the videos according to one-time pick of the user
+    Saves videos with "_cropped" tail
+    """
+    cropped_frame = None
+    frame_count = 0
+
+    box = None
+    videofiles = [n for n in os.listdir(dir) if n[-4:] == '.mp4' or n[-4:] == '.MP4']
+
+    for videofile in videofiles:
+        offset = 0
+
+        cv2.namedWindow("Frame", cv2.WINDOW_NORMAL)
+
+        filename = os.path.join(dir, videofile)
+
+        video = cv2.VideoCapture(filename)
+
+        if video.isOpened():
+            ret, frame = video.read()
+            if ret:
+                frame_count = video.get(cv2.CAP_PROP_POS_FRAMES)
+                if box is None:
+                    box = choose_box("Frame", frame)
+            else:
+                print("Non-readable frame: " + str(frame_count + offset))
+                offset += 1
+            total_count = video.get(cv2.CAP_PROP_FRAME_COUNT)
+
+            codec = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
+            FPS = video.get(cv2.CAP_PROP_FPS)
+            first_frame = crop_frame(frame, box)
+            size = (box[2], box[3])
+            out_video = cv2.VideoWriter(str(filename[:-4]) + '_cropped.mp4', codec, FPS, size, 1)
+
+            cv2.imshow("Frame", first_frame)
+            out_video.write(first_frame)
+
+            while frame_count < total_count:
+                ret, frame = video.read()
+
+                if ret:
+                    frame_count = video.get(cv2.CAP_PROP_POS_FRAMES)
+
+                    cropped_frame = crop_frame(frame, box)
+                    cv2.resizeWindow("Frame", box[2], box[3])
+                    cv2.imshow("Frame", cropped_frame)
+                    out_video.write(cropped_frame)
+                else:
+                    print("Non-readable frame: " + str(frame_count + offset))
+                    print("Replacing with the previous frame")
+                    out_video.write(cropped_frame)
+                    offset += 1
+
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
+
+            video.release()
+            out_video.release()
+            cv2.destroyAllWindows()
+
+
+def concatenate_videos(dir):
+    """
+    Traverses through the given directory
+    Concatenates videos into one starting from the first video
+    Assumes the following naming format
+    "GX010012.MP4" where "01" would be the key for sorting
+    :param dir:
+    """
+    # these two lines are for loading the videos.
+    videofiles = [n for n in os.listdir(dir) if n[-4:] == '.mp4' or n[-4:] == '.MP4']
+    videofiles = sorted(videofiles, key=lambda item: int( item.partition('X')[2][:-8]))
+
+    video_index = 0
+    video_name = videofiles[0]
+    cap = cv2.VideoCapture(os.path.join(dir, video_name))
+
+    # setting up the output
+    name = os.path.join(dir, re.split("X0[1-9]", video_name)[1])
+    codec = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
+    FPS = cap.get(cv2.CAP_PROP_FPS)
+    width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+    height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+    size = (int(width), int(height))
+    out = cv2.VideoWriter(name, codec, FPS, size, 1)
+
+    while cap.isOpened():
+        ret, frame = cap.read()
+        if frame is None:
+            print ("end of video " + str(video_index) + " .. next one now")
+            video_index += 1
+            if video_index >= len(videofiles):
+                break
+            cap = cv2.VideoCapture(os.path.join(dir,videofiles[video_index]))
+            ret, frame = cap.read()
+        cv2.imshow('frame', frame)
+        out.write(frame)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    cap.release()
+    out.release()
+    cv2.destroyAllWindows()
+
+    print ("end.")
+
+
+if __name__=='__main__':
+    if len(sys.argv) == 1:
+        print("Call the script with arg \"undistort\" to undistort videos, \"crop\" to crop videos, "
+              "\"concatenate\" for creating a single video from multiple")
+    elif sys.argv[1] == "crop":
+        path = input("Insert the directory to work in\n")
+        process_videos(path)
+    elif sys.argv[1] == "concatenate":
+        path = input("Insert the directory to work in\n")
+        concatenate_videos(path)
+    elif sys.argv[1] == "undistort":
+        path = input("Insert the directory to work in\n")
+        undistort_all(path)
