@@ -86,7 +86,7 @@ def undistort(filename):
 
 def undistort_frame(frame):
     dir_path = os.path.dirname(os.path.realpath(__file__))[:-3]
-    npz_calib_file = np.load(os.path.join(dir_path, '/data/calibration_data.npz'))
+    npz_calib_file = np.load(os.path.join(dir_path, 'data', 'calibration_data.npz'))
 
     distCoeff = npz_calib_file['distCoeff']
     intrinsic_matrix = npz_calib_file['intrinsic_matrix']
